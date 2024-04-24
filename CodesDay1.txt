@@ -1,0 +1,187 @@
+#mapOne.py
+
+'''
+    map()
+'''
+
+def fun(arg):
+    return f"{arg} passed to fun()"
+
+
+if __name__ == "__main__":
+    # pass a function and list to map(), 
+    # the output of mapping will be stored in res,
+    # which is a list
+    res = map(fun, [1,2,3,4,6,5])
+    # output each element of result list:
+    for i in res:
+        print(i)
+
+#mapTwo.py
+
+'''
+    map()
+'''
+
+def fun(arg):
+    return f"{arg} passed to fun()"
+
+
+if __name__ == "__main__":
+    # another way to create a list.
+    # range() returns a list:
+    res = map(fun, list(range(1, 101)))
+    # output each element of result list:
+    for i in res:
+        print(i)
+
+#mapThree.py
+
+'''
+    working on single process --- no parallelism
+'''
+
+# importing the parallel processing module:
+from multiprocessing import Pool
+# for getting functions to measure time:
+from time import sleep, perf_counter
+# for getting process id:
+from os import getpid
+
+def doSomeJob(args):
+    print(f"Job Started...{getpid()}")
+    sleep(args)
+    print('*'*40)
+    return f"{args} Job Completed...{getpid()}"
+
+
+if __name__ == "__main__":
+    # current system times in seconds and miliseconds is stored in start:
+    start = perf_counter()
+    
+    with Pool(3) as pObj:
+        # this map function belongs to Pool module,
+        # it takes a callback function, and a list of integers as parameters,
+        # and passes the items listed in list as parameters to callback function:
+        print(pObj.map(doSomeJob, [3,2,4]))
+        # so here, 3 jobs will execute with 3,2 and 4 as parameters to doSomeJob()
+
+        # notice that we dont have to use start() and join() syntax here,
+        # all of that is handled by pObj internally in Pool module.
+
+    # current system time in seconds and miliseconds is stored in end:
+    end = perf_counter()
+    # print time elapsed by subtracting start and end time 
+    # and rounding to 3 decimal digits:
+    print(f"Time taken: {round(end-start, 3)} secs")
+
+#mapFour.py
+
+'''
+    working on single process --- no parallelism
+'''
+
+# importing the parallel processing module:
+import multiprocessing as mp
+# for getting functions to measure time:
+from time import sleep, perf_counter
+# for getting process id:
+from os import getpid
+
+def doSomeJob():
+    print(f"Job Started...{getpid()}")
+    sleep(1)
+    print(f"Job Completed...")
+    print('*'*40)
+
+# if directly running this program, run 3 doSomeJob() parallely:
+if __name__ == "__main__":
+    start = perf_counter()
+
+    # creating a list of objects:
+    listObjs = []
+    
+    # appending 3 jobs into the list:
+    for _ in range(3):
+        pObj = mp.Process(target=doSomeJob)
+        listObjs.append(pObj)
+
+    # start all 3 jobs parallely:
+    for one in listObjs:
+        one.start()
+
+    # join all 3 jobs (i.e. wait for all 3 jobs to terminate):
+    for one in listObjs:
+        one.join()
+    
+    end = perf_counter()
+    print(f"Time taken: {round(end-start, 3)} secs")
+
+#mapFive.py
+
+'''
+    multi-processing with arguments
+'''
+
+# importing the parallel processing module:
+import multiprocessing as mp
+# for getting functions to measure time:
+from time import sleep, perf_counter
+# for getting process id:
+from os import getpid
+
+# we will pass arguments to this function by using args parameter in Process()
+def doSomeJob(args):
+    print(f"Job Started...{getpid(), {args}}")
+    sleep(args)
+    print(f"Job Completed...")
+    print('*'*40)
+
+if __name__ == "__main__":
+
+    start = perf_counter()
+
+    # passing arguments as "args" parameter
+    # when you create a tuple or list, 
+    # for 1 value you have put a trailing comma.
+    pObj = mp.Process(target=doSomeJob, args=(2,))
+    pObj.start()
+
+    pObj.join()
+    
+    end = perf_counter()
+    print(f"Time taken: {round(end-start, 3)} secs")
+
+#ipcQueue
+
+'''
+    working on single process --- no parallelism
+'''
+
+# importing the parallel processing module:
+from multiprocessing import Process, Queue
+# for getting functions to measure time:
+from time import sleep, perf_counter
+# for getting process id:
+from os import getpid
+
+def doSomeJob(que):
+    print(f"Child Process with...{getpid()}")
+    # child process pushes some list into the message queue:
+    que.put([1001, "Some Name here", 93475.234])
+    print(f"Job Completed...")
+    print('*'*40)
+
+if __name__ == "__main__":
+    start = perf_counter()
+    
+    print(f"Parent Process with ...{getpid()}")
+    que = Queue()
+
+    pObj = Process(target=doSomeJob, args=(que,))
+    pObj.start()
+    print(f"getting... {que.get()}")
+    pObj.join()
+    
+    end = perf_counter()
+    print(f"Time taken: {round(end-start, 3)} secs")
